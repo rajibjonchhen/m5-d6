@@ -31,4 +31,16 @@ postsRouter.get('/', async(req, res, next) => {
     }
 })
 
+postsRouter.get('/:id', async(req, res, next) => {
+    try {
+        const postsArray = await readPosts()
+        const reqPost = postsArray.find(post => post.id === req.params.id)
+
+        res.status(201).send(reqPost)
+
+    } catch (error) {
+       next(error) 
+    }
+})
+
 export default postsRouter
