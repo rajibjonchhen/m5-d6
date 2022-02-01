@@ -1,17 +1,26 @@
 import express from "express";
 import multer from 'multer'
 import { v4 } from "uuid";
-import { v4 as uuidv4 } from 'uuid';
+import {v2 as cloudy} from 'cloudinary'
+import {CloudinaryStorage} from 'multer-storage-cloudinary'
+
 import { readPosts, writePosts ,uploadImg } from "../../lib/fsUtils.js";
 import createError from "http-errors";
  
 const postsRouter = express.Router()
 
+const cloudinaryUploader = multer({
+    storage: new CloudinaryStorage({
+        params:{
+            folder:'strive-box-be'
+        }
+    })
+})
 
-postsRouter.post('/',multer().single('image'),uploadImg, async(req, res, next) => {
+postsRouter.post('/',cloudinaryUploader, uploadImg, async(req, res, next) => {
     try {
         const postsArray = await readPosts()
-        const newPost = {...postsArray, ...req.body,id:v4(), createdAt:new Date(),title:req.file.originalname, link:req.file.imageUrl}
+        const newPost = {id:req.file.id, createdAt:new Date(),title:req.file.originalname, link:req.file.imageUrl}
         postsArray.push(newPost)
         await writePosts(postsArray)
         res.status(201).send({msg:'uploaded successfully'})
@@ -36,7 +45,7 @@ postsRouter.get('/:id', async(req, res, next) => {
     try {
         const postsArray = await readPosts()
         const reqPost = postsArray.find(post => post.id === req.params.id)
-        if(reqPost>0){
+        if(reqPost){
         res.status(201).send(reqPost)
         } else{
             next(createError()) 
@@ -54,6 +63,15 @@ postsRouter.put('/:id', async(req,res, next) =>{
         const postsArray = await readPosts()
         const index = postsArray.findIndex(post => post.id === req.params.id)
         const oldPost = postsArray[index]
+        const newPost = {...req.body}
+        console.log(newPost)
+        const updatedPost = {...oldPost,...newPost,updatedAt:new Date()}
+        postsArray[index] = updatedPost
+
+        console.log(updatedPost)
+        console.log(req.params.id)
+        await writePosts(postsArray)
+        res.status(201).send({msg:'title changed successfully'})
     } catch (error) {
         console.log(error)
         throw error 
