@@ -17,7 +17,7 @@ const cloudinaryUploader = multer({
     })
 })
 
-postsRouter.post('/',cloudinaryUploader, uploadImg, async(req, res, next) => {
+postsRouter.post('/',cloudinaryUploader, async(req, res, next) => {
     try {
         const postsArray = await readPosts()
         const newPost = {id:req.file.id, createdAt:new Date(),title:req.file.originalname, link:req.file.imageUrl}
