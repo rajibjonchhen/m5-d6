@@ -11,7 +11,15 @@ const publicFolderPath = join(process.cwd(),'./public/image')
 
 server.use(express.json())
 server.use(express.static(publicFolderPath))
-server.use(cors())
+
+const whiteListOrigins = [process.env.FE_DEV_URL]
+server.use(cors({origin:function(origin, next){
+    if(!origin || whiteListOrigins.indexOf(origin)!== -1){
+        next(null, true)
+    } else{
+        next(new Error("cors error"))
+    }
+}}))
 
 server.use('/posts',postsRouter)
 server.use(errorHandler)
